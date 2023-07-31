@@ -19,6 +19,7 @@ team_1 <- team_raw %>%
 batting_id_teams <- inner_join(batting_raw, team_1, by = "teamID", relationship = "many-to-many") %>% 
   select(playerID, franchID) %>% 
   distinct()
+###
 
 pitching_id_teams <- inner_join(pitching_raw, team_1, by = "teamID",
                         relationship = "many-to-many") %>% 
