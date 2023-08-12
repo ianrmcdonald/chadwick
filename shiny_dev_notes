@@ -10,3 +10,13 @@ HOORAY.  Now to control this thing
 4.  make this upload to git and run from ShinyApps
 
 5.  themes screw up paging with DataTable
+
+
+
+8/122023
+
+Write a function that generates a list of awards and most common performance targets (W, SO, etc.)
+
+
+Add some team specific content into the two_teams function.
+Wrote games_with_team() function.  

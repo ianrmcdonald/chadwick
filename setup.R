@@ -14,7 +14,7 @@ people_raw <- read_csv("data/people.csv") #modified people.csv per 7/30/2023 upd
 awards_raw <- read_csv("data/AwardsPlayers.csv")
 team_raw <- read_csv("data/Teams.csv")
 franch_raw <- read_csv("data/TeamsFranchises.csv")
-
+games_with_team("boutoji01", "NYY")
 
 #teem table has a faulty WAS franchid for Nationals causing dupes at row 31921
 #this fixes it
@@ -100,7 +100,7 @@ threshhold_team <- function(team, threshhold_i, stat, type="batting") {
          filter(franchID == team, !!as.name(stat) >= threshhold_i) %>% 
          inner_join(., people_raw, by="playerID") %>% 
          select(playerID, nameFirst, nameLast, yearID, debut, finalGame, !!as.name(stat))
-}
+  }
 
 threshhold_team_any <- function(threshhold_i, stat, type="batting") {
   
@@ -254,6 +254,31 @@ lookup_franchise_id <- function(franchise_name) {
     
 }
 
+batting_stat_categories <- colnames(batting_raw[6:ncol(batting_raw)])
+pitching_stat_categories <- colnames(pitching_raw[6:ncol(pitching_raw)])
 
 
+games_with_team <- function(player, franch, teams = "all", type="batting") {
+  
+  
+  if(type == "batting") source_tbl <- "batting_raw"
+  if(type == "pitching") source_tbl <- "pitching_raw"
+  
+  
+  all_games <- 
+    inner_join(!!as.name(source_tbl), team_franch, by="teamID", relationship = "many-to-many") |> 
+    filter(active == "Y") |> 
+    select(playerID, franchID, G) |> 
+    group_by(playerID, franchID) |> 
+    summarise(games = sum(G), .groups = "keep")
+  
+    if (teams == "all") {
+      all_games <- all_games |> filter(playerID == player)
+    } else {
+      all_games <- all_games |> filter(playerID == player, franchID == franch)  
+    }
+  
+}
 
+
+games_with_team("boutoji01", "NYY")
