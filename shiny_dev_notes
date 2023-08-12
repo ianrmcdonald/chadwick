@@ -1,0 +1,12 @@
+8/11/2023
+
+
+HOORAY.  Now to control this thing
+
+1.  tabs
+2.  dates are not sorting as dates...need dataTable
+      to represent them that way.
+3.  make source run quietly
+4.  make this upload to git and run from ShinyApps
+
+5.  themes screw up paging with DataTable
