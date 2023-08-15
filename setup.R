@@ -14,15 +14,16 @@ people_raw <- read_csv("data/people.csv") #modified people.csv per 7/30/2023 upd
 awards_raw <- read_csv("data/AwardsPlayers.csv")
 team_raw <- read_csv("data/Teams.csv")
 franch_raw <- read_csv("data/TeamsFranchises.csv")
-games_with_team("boutoji01", "NYY")
 
 #teem table has a faulty WAS franchid for Nationals causing dupes at row 31921
 #this fixes it
-team_franch <- team_raw %>% 
-  select(teamID, franchID, lgID) %>% 
-  filter(!(teamID == "WAS" & franchID == "WAS")) %>%
-  inner_join(., franch_raw, by="franchID") %>% 
-  filter(active == "Y") %>% 
+#I dropped lgID because Houston and Milwaukee are double counted
+team_franch <- team_raw  |>
+  select(teamID, franchID) |> 
+  filter(!(teamID == "WAS" & franchID == "WAS")) |> 
+  filter(!(teamID == "BLA" & franchID == "NYY")) |> #baseball ref doesn't match these (1901 & 1902)
+  inner_join(franch_raw, by="franchID")  |>  
+  filter(active == "Y") |>  
   distinct()
 
 batting_id_teams <- inner_join(batting_raw, team_franch, by = "teamID", 
@@ -65,9 +66,25 @@ playerID_number_of_teams <- inner_join(playerID_number_of_teams, people_raw,
   select(teams_n = n, playerID, nameFirst, nameLast, debut, finalGame)
 
 
+games_with_team <- function(type="batting") {
+
+  all_games <- batting_raw |> 
+    select(-lgID) |> 
+    inner_join(team_franch, by="teamID", relationship = "many-to-many")   |>
+    filter(active == "Y") |> 
+    select(playerID, franchID, G) |>
+    group_by(playerID, franchID) |>
+    summarise(games = sum(G), .groups = "keep") |> 
+    select(playerID, franchID, games)
+}
 
 
+number_of_games_tbl <- games_with_team()
 
+team_ngames <- function(franch) {
+  number_of_games_tbl %>% 
+    filter(franchID == franch)
+}
 
 
 find_all_two_teams <- function(t1, t2) {
@@ -77,13 +94,22 @@ find_all_two_teams <- function(t1, t2) {
     group_by(playerID) %>% 
     summarise(team_count = sum(team_count)) %>% 
     filter(team_count == 3) %>% 
-    inner_join(., people_raw, by="playerID") %>%
+    inner_join(people_raw, by="playerID") %>%
     arrange(desc(debut)) %>% 
-    mutate(days = finalGame - debut) %>% 
     mutate(nameWhole = str_c(nameFirst, " ", nameLast)) %>% 
-    mutate_if(is.Date,~format(.,"%Y-%m-%d")) %>% 
-    select(nameWhole, debut, days)
-
+    mutate_if(is.Date,~format(.,"%Y")) |> 
+    select(playerID, nameWhole, debut, finalGame)
+    t1_name <- str_c(t1," games")
+    t2_name <- str_c(t2," games")
+    
+    
+    two_teams %>% 
+    inner_join(team_ngames(t1), by="playerID") %>% 
+    rename("{t1_name}" := games) %>% 
+    select(-franchID) %>% 
+    inner_join(team_ngames(t2), by="playerID") %>% 
+    rename("{t2_name}" := games) %>% 
+    select(-franchID)
 }
 
 threshhold_team <- function(team, threshhold_i, stat, type="batting") {
@@ -99,7 +125,10 @@ threshhold_team <- function(team, threshhold_i, stat, type="batting") {
         select(playerID, franchID, yearID, !!as.name(stat)) %>%
          filter(franchID == team, !!as.name(stat) >= threshhold_i) %>% 
          inner_join(., people_raw, by="playerID") %>% 
-         select(playerID, nameFirst, nameLast, yearID, debut, finalGame, !!as.name(stat))
+         mutate(Player = str_c(nameFirst, " ", nameLast)) %>%
+         relocate(.before = Player) %>% 
+         select(playerID, Player, yearID, debut, finalGame, !!as.name(stat))
+         
   }
 
 threshhold_team_any <- function(threshhold_i, stat, type="batting") {
@@ -255,30 +284,19 @@ lookup_franchise_id <- function(franchise_name) {
 }
 
 batting_stat_categories <- colnames(batting_raw[6:ncol(batting_raw)])
+
 pitching_stat_categories <- colnames(pitching_raw[6:ncol(pitching_raw)])
+pitching_stat_categories <- pitching_stat_categories[pitching_stat_categories!="G"]
+
+stat_categories <- 
+  unique(
+    str_sort(
+    c(batting_stat_categories, pitching_stat_categories))
+    )
 
 
-games_with_team <- function(player, franch, teams = "all", type="batting") {
-  
-  
-  if(type == "batting") source_tbl <- "batting_raw"
-  if(type == "pitching") source_tbl <- "pitching_raw"
-  
-  
-  all_games <- 
-    inner_join(!!as.name(source_tbl), team_franch, by="teamID", relationship = "many-to-many") |> 
-    filter(active == "Y") |> 
-    select(playerID, franchID, G) |> 
-    group_by(playerID, franchID) |> 
-    summarise(games = sum(G), .groups = "keep")
-  
-    if (teams == "all") {
-      all_games <- all_games |> filter(playerID == player)
-    } else {
-      all_games <- all_games |> filter(playerID == player, franchID == franch)  
-    }
-  
-}
 
 
-games_with_team("boutoji01", "NYY")
+
+
+  

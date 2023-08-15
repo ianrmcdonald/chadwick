@@ -11,6 +11,17 @@ HOORAY.  Now to control this thing
 
 5.  themes screw up paging with DataTable
 
+6.  Old Washington National players still showing up in two team.  
+
+7.  Deal with threshold being "less than" vs. "greater than"
+
+
+8/14/2023
+
+Discovered that BA doesn't consider original Baltimore Orioles part of the
+New York Yankee franchise; arguably they are.  1901-1902 affected.  I removed the
+combination from teamFranch.  
+
 
 
 8/122023
@@ -20,3 +31,9 @@ Write a function that generates a list of awards and most common performance tar
 
 Add some team specific content into the two_teams function.
 Wrote games_with_team() function.  
+
+.by function in summarise statements (no groupby neeeded?)
+case_when .default.
+
+
+****FIX THE HOUSTON ASTROS MILWAUKEE BREWERS PROBLEM****
