@@ -41,13 +41,31 @@ ui <- fluidPage(
             ),
             
             fluidRow(
-              column(12, 
-                     dataTableOutput("players_goal")),
+                column(12, 
+                    dataTableOutput("players_goal")),
             )
         
                  
-        ) 
+        ), 
+        
+        tabPanel("Team and Career Goal",
+            fluidRow(
+                column(6,
+                    selectInput("team_c", "Team", choices = franch_list$franchName, selected="New York Mets"),
+                    selectInput("stat_c", "Stat Category", choices = stat_categories, selected="H"),
+                    numericInput("milestone_c", "Milestone", value = 3000, min = 0),
+            )
+        ),
+       
+          fluidRow(
+              column(12, 
+                  dataTableOutput("players_career")),
+          )
+    
                  
+                 
+                     
+        )         
         
     )  
 )
@@ -76,8 +94,21 @@ server <- function(input, output, session) {
       
     })
     
+    find_them_career <- reactive({
+      if(input$stat_c %in% pitching_stat_categories) class <- "pitching"
+      if(input$stat_c %in% batting_stat_categories) class <- "batting"
+      
+      
+      t_1 <- lookup_franchise_id(input$team_c)
+      
+      threshhold_career(t_1, input$milestone_c, input$stat_c, class) 
+      
+    })
+    
     output$players <- renderDataTable(find_them())
     output$players_goal <- renderDataTable(find_them_goal())
+    output$players_career <- renderDataTable(find_them_career())
+    
 
 }
 

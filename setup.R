@@ -125,9 +125,10 @@ threshhold_team <- function(team, threshhold_i, stat, type="batting") {
         select(playerID, franchID, yearID, !!as.name(stat)) %>%
          filter(franchID == team, !!as.name(stat) >= threshhold_i) %>% 
          inner_join(., people_raw, by="playerID") %>% 
-         mutate(Player = str_c(nameFirst, " ", nameLast)) %>%
-         relocate(.before = Player) %>% 
-         select(playerID, Player, yearID, debut, finalGame, !!as.name(stat))
+         mutate(player = str_c(nameFirst, " ", nameLast)) %>%
+         relocate(.before = player) %>%
+         mutate_if(is.Date,~format(.,"%Y")) |> 
+         select(playerID, player, yearID, debut, finalGame, !!as.name(stat))
          
   }
 
@@ -143,7 +144,8 @@ threshhold_team_any <- function(threshhold_i, stat, type="batting") {
     inner_join(., team_franch, by = "teamID", relationship = "many-to-many") %>% 
     select(playerID, franchID, yearID, !!as.name(stat)) %>%
     filter(!!as.name(stat) >= threshhold_i) %>% 
-    inner_join(., people_raw, by="playerID") %>% 
+    inner_join(., people_raw, by="playerID") %>%
+    mutate_if(is.Date,~format(.,"%Y")) |> 
     select(playerID, nameFirst, nameLast, yearID, franchID, debut, finalGame, !!as.name(stat))
 }
 
@@ -155,20 +157,26 @@ threshhold_career <- function(team, threshhold_i, stat, type="batting") {
     table_data = batting_raw
   }
   
+  stat_i <- stat
   threshhold_list <- table_data %>% 
     select(playerID, !!as.name(stat)) %>%
     group_by(playerID) %>% 
     summarise(stat_i = sum(!!as.name(stat))) %>% 
-    inner_join(., all_playerID_teams, by="playerID",
+    inner_join(all_playerID_teams, by="playerID",
                 relationship = "many-to-many") %>% 
      filter(franchID == team & stat_i >= threshhold_i) %>% 
-     distinct() %>% 
-    inner_join(., people_raw, by="playerID",
-                relationship = "many-to-many") %>% 
-    select(playerID, nameFirst, nameLast, debut, finalGame, stat_i) 
-
+     distinct() %>%  
+    inner_join(people_raw, by="playerID",
+                relationship = "many-to-many") %>%
+    mutate_if(is.Date,~format(.,"%Y")) %>% 
+    mutate(player = str_c(nameFirst, " ", nameLast)) %>%
+    rename("{stat_i}" := stat_i) %>% 
+    select(playerID, player, debut, finalGame, !!as.name(stat_i)) %>% 
+    distinct()
   
 }
+
+#ought to combine these two functions. 
 
 threshhold_career_any_team <- function(threshhold_i, stat, type="batting") {
   
@@ -178,19 +186,23 @@ threshhold_career_any_team <- function(threshhold_i, stat, type="batting") {
     table_data = batting_raw
   }
   
+  stat_i <- stat
   threshhold_list <- table_data %>% 
     select(playerID, !!as.name(stat)) %>%
     group_by(playerID) %>% 
     summarise(stat_i = sum(!!as.name(stat))) %>% 
-  inner_join(., all_playerID_teams, by="playerID",
-             relationship = "many-to-many") %>%
-  filter(stat_i >= threshhold_i) %>%
-  distinct() %>%
-  inner_join(., people_raw, by="playerID",
-             relationship = "many-to-many") %>%
-    select(playerID, nameFirst, nameLast, debut, finalGame, stat_i) %>%
-  distinct()
-
+    inner_join(all_playerID_teams, by="playerID",
+               relationship = "many-to-many") %>% 
+    filter(stat_i >= threshhold_i) %>% 
+    distinct() %>% 
+    inner_join(people_raw, by="playerID",
+               relationship = "many-to-many") %>%
+    mutate_if(is.Date,~format(.,"%Y")) %>% 
+    mutate(player = str_c(nameFirst, " ", nameLast)) %>%
+    rename("{stat_i}" := stat_i) %>% 
+    select(playerID, player, debut, finalGame, !!as.name(stat_i)) %>% 
+    distinct()
+  
   
 }
 
