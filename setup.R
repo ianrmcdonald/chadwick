@@ -1,4 +1,5 @@
 library(tidyverse)
+library(DT)
 
 #https://chadwick.readthedocs.io/en/latest/
 
@@ -9,11 +10,26 @@ library(tidyverse)
 #https://github.com/chadwickbureau/baseballdatabank/tree/master/core
 
 batting_raw <- read_csv("data/Batting.csv")
-pitching_raw <- read_csv("data/pitching.csv")
-people_raw <- read_csv("data/people.csv") #modified people.csv per 7/30/2023 update
+pitching_raw <- read_csv("data/Pitching.csv")
+people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
 awards_raw <- read_csv("data/AwardsPlayers.csv")
 team_raw <- read_csv("data/Teams.csv")
 franch_raw <- read_csv("data/TeamsFranchises.csv")
+
+#https://www.baseball-reference.com/awards/hof_batting.shtml
+
+hof_b_raw <- read_csv("data/hof_b.csv") %>% 
+  select(yearID = Inducted, playerID = `Name-additional`) %>%
+  mutate(awardID = "Hall of Fame")
+  
+
+hof_p_raw <- read_csv("data/hof_p.csv") %>% 
+  select(yearID = Inducted, playerID = `Name-additional`) %>%
+  mutate(awardID = "Hall of Fame")
+
+
+hof_raw <- bind_rows(hof_b_raw, hof_p_raw)
+
 
 #teem table has a faulty WAS franchid for Nationals causing dupes at row 31921
 #this fixes it
@@ -206,14 +222,20 @@ threshhold_career_any_team <- function(threshhold_i, stat, type="batting") {
   
 }
 
+
+awards_and_hof <- awards_raw %>% 
+  bind_rows(hof_raw)
+  
+
 find_award_winners <- function(t1, award_name = "Most Valuable Player") {
   
     winner <- awards_raw %>% 
       filter(awardID == award_name) %>% 
-      inner_join(., all_playerID_teams_year, by=c("playerID", "yearID")) %>%
-      inner_join(., people_raw, by="playerID") %>%
+      inner_join(all_playerID_teams_year, by=c("playerID", "yearID")) %>%
+      inner_join(people_raw, by="playerID") %>%
       select(playerID, nameFirst, nameLast, yearID, franchID, notes) %>%
       filter(franchID == t1)
+    
 }
 
 
@@ -227,9 +249,10 @@ find_award_winners_any_team <- function(award_name = "Most Valuable Player") {
     select(playerID, nameFirst, nameLast, yearID, franchID, notes) 
 }
 
-find_two_award_winners_any_team <- function(a1, a2, same_year = FALSE) {
-  
 
+
+
+find_two_award_winners_any_team <- function(a1, a2, same_year = FALSE) {
   
   a1_list <- find_award_winners_any_team(a1) %>% 
     select(playerID, yearID, nameFirst, nameLast) %>% 
@@ -249,6 +272,28 @@ find_two_award_winners_any_team <- function(a1, a2, same_year = FALSE) {
   }
   
 }
+
+find_award_winners_and_HOF <- function(a1) {
+  
+  a1_list <- find_award_winners_any_team(a1) %>% 
+    select(playerID) %>% 
+    distinct()
+  
+  a2_list <- hof_raw %>% 
+    select(playerID) %>% 
+    distinct()
+  
+    a_both_list <- inner_join(a1_list, a2_list, by=c("playerID")) %>% 
+      select(playerID) %>% 
+      inner_join(people_raw, by="playerID",
+                 relationship = "many-to-many") %>%
+      select(playerID, nameFirst, nameLast) %>% 
+      inner_join(hof_raw, by ="playerID") %>% 
+      distinct()
+      
+}
+
+
 
 
 franch_list <- franch_raw %>% 
@@ -296,15 +341,18 @@ lookup_franchise_id <- function(franchise_name) {
 }
 
 batting_stat_categories <- colnames(batting_raw[6:ncol(batting_raw)])
-
 pitching_stat_categories <- colnames(pitching_raw[6:ncol(pitching_raw)])
 pitching_stat_categories <- pitching_stat_categories[pitching_stat_categories!="G"]
+awards_categories <- unique(awards_raw$awardID) %>% sort()
+
+
 
 stat_categories <- 
   unique(
     str_sort(
     c(batting_stat_categories, pitching_stat_categories))
     )
+
 
 
 

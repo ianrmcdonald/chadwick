@@ -2,8 +2,8 @@ library(tidyverse)
 
 
 batting_raw <- read_csv("data/Batting.csv")
-pitching_raw <- read_csv("data/pitching.csv")
-people_raw <- read_csv("data/people.csv")
+pitching_raw <- read_csv("data/Pitching.csv")
+people_raw <- read_csv("data/People.csv")
 awards_raw <- read_csv("data/AwardsPlayers.csv")
 team_raw <- read_csv("data/Teams.csv")
 franch_raw <- read_csv("data/TeamsFranchises.csv")
