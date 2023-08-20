@@ -14,6 +14,6 @@ threshhold_list <- threshhold_team("TEX", 40, "HR", type="batting")
 
 
 
-two_winners <- find_two_award_winners_any_team("Most Valuable Player", "Cy Young Award", same_year = TRUE)
+two_winners <- find_two_award_winners_any_team("Most Valuable Player", "Rookie of the Year", same_year = FALSE)
 
 

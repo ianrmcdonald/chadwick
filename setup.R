@@ -66,7 +66,7 @@ all_playerID_teams_year <- rbind(batting_id_teams_year, pitching_id_teams_year) 
 
 playerID_number_of_teams <- all_playerID_teams |> 
   count(playerID) |> 
-  inner_join(playerID_number_of_teams, people_raw, 
+  inner_join(people_raw, 
                                        by = "playerID") |> 
   select(teams_n = n, playerID, nameFirst, nameLast, debut, finalGame)
 
@@ -158,8 +158,9 @@ threshhold_team_any <- function(threshhold_i, stat, type="batting") {
     select(playerID, franchID, yearID, !!as.name(stat)) |>
     filter(!!as.name(stat) >= threshhold_i) |> 
     inner_join(people_raw, by="playerID") |>
-    mutate_if(is.Date,~format(.,"%Y")) |> 
-    select(playerID, nameFirst, nameLast, yearID, franchID, debut, finalGame, !!as.name(stat))
+    mutate_if(is.Date,~format(.,"%Y")) |>
+    mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |> 
+    select(playerID, nameWhole, yearID, franchID, debut, finalGame, !!as.name(stat))
 }
 
 threshhold_career <- function(team, threshhold_i, stat, type="batting") {
@@ -245,22 +246,26 @@ find_award_winners_any_team <- function(award_name = "Most Valuable Player") {
     select(playerID, nameFirst, nameLast, yearID, franchID, notes) 
 }
 
-find_two_award_winners_any_team <- function(a1, a2, same_year = FALSE) {
+find_two_award_winners_any_team <- function(a1, a2, same_year = TRUE) {
   
   a1_list <- find_award_winners_any_team(a1) |> 
-    select(playerID, yearID, nameFirst, nameLast) |> 
+    mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+    select(playerID, yearID, nameWhole) |>
     distinct()
   
-  a2_list <- find_award_winners_any_team(a2) |> 
-    select(playerID, yearID, nameFirst, nameLast) |> 
+  a2_list <- find_award_winners_any_team(a2) |>
+    mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+    select(playerID, yearID, nameWhole) |>
     distinct()
 
   if(same_year) {
-    a_both_list <- inner_join(a1_list, a2_list, by=c("playerID", "nameFirst", "nameLast", "yearID"))
-    
+    a_both_list <- inner_join(a1_list, a2_list, by=c("playerID", "nameWhole", "yearID"), relationship =
+                                                       "many-to-many")
+
   } else {
-    a_both_list <- inner_join(a1_list, a2_list, by=c("playerID", "nameFirst", "nameLast")) |> 
-      select(playerID, nameFirst, nameLast) |> 
+    a_both_list <- inner_join(a1_list, a2_list, by=c("playerID", "nameWhole"), relationship =
+                                                       "many-to-many") |>
+      select(playerID, nameWhole) |>
       distinct()
   }
   
