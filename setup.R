@@ -66,14 +66,39 @@ all_playerID_teams_year <- rbind(batting_id_teams_year, pitching_id_teams_year) 
 
 playerID_number_of_teams <- all_playerID_teams |> 
   count(playerID) |> 
-  inner_join(people_raw, 
-                                       by = "playerID") |> 
-  select(teams_n = n, playerID, nameFirst, nameLast, debut, finalGame)
+  rename(career_teams = n)|> 
+  select(playerID, career_teams)
 
+players_and_teams <- function(player, name_complete = FALSE) {
 
+  if(!name_complete) {
+    
+  p_and_t <- all_playerID_teams |>
+    inner_join(people_raw, by="playerID") |> 
+    mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+    filter(playerID == player) |>
+    inner_join(franch_list, by="franchID")  |> 
+    select(playerID, nameWhole, franchName)
+  }
+  
+  else {
+    p_and_t <- all_playerID_teams |>
+      inner_join(people_raw, by="playerID") |> 
+      mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+      filter(nameWhole == player) |> 
+      inner_join(franch_list, by="franchID") |> 
+      select(playerID, nameWhole, franchName)
+  }
+  
+}
 
-
-
+name_whole_list <- people_raw |> 
+  mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+  mutate(y_text_1 = format(debut,"%Y")) |> 
+  mutate(y_text_2 = format(finalGame,"%Y")) |> 
+  mutate(ifelse (y_text_2 == "2023", "", y_text_2)) |> 
+  mutate(nameWholeYears = str_c(nameWhole, ": ", y_text_1,"-",y_text_2)) |> 
+  select(playerID, nameWholeYears)
 
 
 

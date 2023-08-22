@@ -7,7 +7,6 @@ HOORAY.  Now to control this thing
 2.  dates are not sorting as dates...need dataTable
       to represent them that way.
 3.  make source run quietly
-4.  make this upload to git and run from ShinyApps
 
 5.  themes screw up paging with DataTable
 
@@ -17,11 +16,13 @@ HOORAY.  Now to control this thing
 
 8.  Fix column widths
 
-9.  Need HOF CSV
+9.  Need HOF CSV. DONE
 
 10.  Download the 16 people files
 
 11.  THEMES
+
+12.  Make nameWhole a permanent part of people_raw
 
 8/14/2023
 
