@@ -140,19 +140,22 @@ ui <- fluidPage(
         ),
         
         tabPanel("Names and Teams", #Panel 7
-                 #fluidRow(
-                 #  column(6,
-                 #         selectizeInput("names_and_teams", "Names", choices = NULL),
+                 
+                 fluidRow(
+                   column(6,
+                          selectizeInput("names_and_teams", "Names", 
+                                         choices = name_whole_list$nameWholeYears, selected="Felix Hernandez: 2005-2019"),
                           
                           
-                 #  )
-                 #),
+                   )
+                 ),
+                 
+                 actionButton(inputId = "pull_teams", label = "Pull Teams"),
                  
                  fluidRow(
                    column(12, 
                           dataTableOutput("names_teams")),
-                 )
-                 
+                 ) 
                  
                  
                  
@@ -259,15 +262,26 @@ server <- function(input, output, session) {
           distinct() 
       }
     })
-      
-      find_teams <- reactive({
-        
-        t_7 <-  players_and_teams("Rich Hill", TRUE) 
-        
-      
-
-    })
     
+    find_teams <- eventReactive(input$pull_teams,
+                                
+                                
+        {
+          
+          pid <- name_whole_list |> filter(nameWholeYears == input$names_and_teams) 
+          
+          pid_1 <- players_and_teams(pid$playerID) |> 
+            inner_join(number_of_games_tbl, by=c("playerID", "franchID")) |> 
+            select(-franchID, -playerID) |> 
+            arrange(desc(games))
+          
+          
+        })
+    
+      
+ 
+    
+
     output$players <- renderDataTable(find_them())
     output$players_goal <- renderDataTable(find_them_goal())
     output$players_goal_any_team <- renderDataTable(find_them_goal_any())
@@ -277,12 +291,12 @@ server <- function(input, output, session) {
     output$team_and_award <- renderDataTable(find_team_and_award() |> select(-playerID) |> select(-franchID))
     output$two_awards_any_year <- renderDataTable(two_awards_any_year())
     
-    #updateSelectizeInput(session, 'names_and_teams', choices = name_whole_list$nameWholeYears, server = TRUE,
-    #                     options= list(maxOptions = length(name_whole_list$nameWholeYears)))
-    
     output$names_teams <- renderDataTable(find_teams())
+    
+    
     
 
 }
 
 shinyApp(ui, server)
+

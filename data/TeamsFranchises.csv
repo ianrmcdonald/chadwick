@@ -1,6 +1,6 @@
 franchID,franchName,active,NAassoc
 ALT,Altoona Mountain City,N,
-ANA,Los Angeles Angels of Anaheim,Y,
+ANA,Los Angeles Angels,Y,
 ARI,Arizona Diamondbacks,Y,
 ATH,Philadelphia Athletics,N,PNA
 ATL,Atlanta Braves,Y,BNA
@@ -42,7 +42,7 @@ CPI,Chicago/Pittsburgh (Union League),N,
 DET,Detroit Tigers,Y,
 DTN,Detroit Wolverines,N,
 ECK,Brooklyn Eckfords,NA,
-FLA,Florida Marlins,Y,
+FLA,Miami Marlins,Y,
 HAR,Hartford Dark Blues,N,HNA
 HNA,Hartford Dark Blues,NA,HAR
 HOU,Houston Astros,Y,

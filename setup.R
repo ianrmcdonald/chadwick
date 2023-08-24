@@ -78,7 +78,7 @@ players_and_teams <- function(player, name_complete = FALSE) {
     mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
     filter(playerID == player) |>
     inner_join(franch_list, by="franchID")  |> 
-    select(playerID, nameWhole, franchName)
+    select(playerID, nameWhole, franchID, franchName)
   }
   
   else {
@@ -87,7 +87,7 @@ players_and_teams <- function(player, name_complete = FALSE) {
       mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
       filter(nameWhole == player) |> 
       inner_join(franch_list, by="franchID") |> 
-      select(playerID, nameWhole, franchName)
+      select(playerID, nameWhole, franchID, franchName)
   }
   
 }
