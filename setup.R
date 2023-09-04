@@ -11,7 +11,11 @@ library(bslib)
 
 
 ## Read Data Files
-batting_raw <- read_csv("data/Batting.csv")
+batting_raw <- read_csv("data/Batting.csv") |> 
+  mutate(SF = ifelse(is.na(SF), 0, SF)) |> 
+  mutate(BA = ifelse(AB + SF + SH + BB + HBP >= 502, round(H / AB * 1000, 
+                                           digits=0), 0))
+
 pitching_raw <- read_csv("data/Pitching.csv")
 people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
 awards_raw <- read_csv("data/AwardsPlayers.csv")
@@ -29,6 +33,9 @@ hof_raw <- bind_rows(hof_b_raw, hof_p_raw)
 #team table has a faulty WAS franchid for Nationals causing dupes at row 31921
 #this fixes it
 #I dropped lgID because Houston and Milwaukee are double counted
+
+
+
 
 team_franch <- team_raw  |>
   select(teamID, franchID) |> 
@@ -68,6 +75,15 @@ playerID_number_of_teams <- all_playerID_teams |>
   count(playerID) |> 
   rename(career_teams = n)|> 
   select(playerID, career_teams)
+
+playerID_number_of_teams_names <- all_playerID_teams |> 
+  count(playerID) |> 
+  rename(career_teams = n)|> 
+  inner_join(people_raw, by="playerID") |> 
+  mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
+  arrange(desc(career_teams)) |> 
+  select(playerID, nameWhole, career_teams) 
+  
 
 players_and_teams <- function(player, name_complete = FALSE) {
 
