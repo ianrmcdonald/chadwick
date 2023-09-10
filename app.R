@@ -13,7 +13,7 @@ ui <- fluidPage(
     shinyUI(fluidPage(
       # Application title
       titlePanel("Immaculate Grid Cheatmobile"),
-      p("3-Sep-2023"), 
+      p("10-Sep-2023"), 
       p("Ian McDonald ianrmcdonald at gmail.com")
       )
     ),
@@ -29,6 +29,7 @@ ui <- fluidPage(
                 column(6,
                     selectInput("team_1", "Team 1", choices = franch_list$franchName, selected="New York Mets"),
                     selectInput("team_2", "Team 2", choices = franch_list$franchName, selected="New York Yankees"),
+                    checkboxInput("two_team_checkbox_HOF", "Hall of Fame?", value = FALSE),
                 ),
             ),
             
@@ -194,10 +195,22 @@ server <- function(input, output, session) {
         t_1 <- lookup_franchise_id(input$team_1)
         t_2 <- lookup_franchise_id(input$team_2)
         
+        if(input$two_team_checkbox_HOF) {
+          
+          find_all_two_teams(t_1, t_2) |> 
+            inner_join(playerID_number_of_teams, by="playerID") |> 
+            inner_join(select(hof_raw, playerID), by="playerID", relationship =
+                         "many-to-many") |> 
+            select(-playerID) |> 
+            arrange(desc(career_teams))
+          
+        } else {
+          
         find_all_two_teams(t_1, t_2) |> 
             inner_join(playerID_number_of_teams, by="playerID") |> 
             select(-playerID) |> 
             arrange(desc(career_teams))
+        }
     })
     
     find_them_goal <- reactive({
