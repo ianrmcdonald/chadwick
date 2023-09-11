@@ -202,6 +202,7 @@ server <- function(input, output, session) {
             inner_join(select(hof_raw, playerID), by="playerID", relationship =
                          "many-to-many") |> 
             select(-playerID) |> 
+            distinct() |> 
             arrange(desc(career_teams))
           
         } else {
@@ -209,6 +210,7 @@ server <- function(input, output, session) {
         find_all_two_teams(t_1, t_2) |> 
             inner_join(playerID_number_of_teams, by="playerID") |> 
             select(-playerID) |> 
+            distinct() |> 
             arrange(desc(career_teams))
         }
     })
