@@ -18,7 +18,10 @@ batting_raw <- read_csv("data/Batting.csv") |>
 
 pitching_raw <- read_csv("data/Pitching.csv")
 people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
-awards_raw <- read_csv("data/AwardsPlayers.csv")
+awards_raw <- read_csv("data/AwardsPlayers.csv") |> 
+  mutate(awardID = ifelse(awardID == "SIlver Slugger", "Silver Slugger", awardID))
+#fix typo in raw data
+
 team_raw <- read_csv("data/Teams.csv")
 franch_raw <- read_csv("data/TeamsFranchises.csv")
 hof_b_raw <- read_csv("data/hof_b.csv") |> 
@@ -28,6 +31,7 @@ hof_p_raw <- read_csv("data/hof_p.csv") |>
   select(yearID = Inducted, playerID = `Name-additional`) |>
   mutate(awardID = "Hall of Fame")
 hof_raw <- bind_rows(hof_b_raw, hof_p_raw)
+all_star_raw <- read_csv("data/AllstarFull.csv")
 
 
 #team table has a faulty WAS franchid for Nationals causing dupes at row 31921
@@ -264,6 +268,10 @@ threshhold_career_any_team <- function(threshhold_i, stat, type="batting") {
 
 awards_and_hof <- awards_raw |> 
   bind_rows(hof_raw)
+
+all_star_any_year <- all_star_raw |> 
+  select(playerID) |> 
+  distinct()
   
 find_award_winners <- function(t1, award_name = "Most Valuable Player") {
   

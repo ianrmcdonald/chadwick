@@ -7,14 +7,15 @@ library(bslib)
 ui <- fluidPage(
   
     theme = bs_theme(
-      bootswatch = "cosmo"
+      bootswatch = "minty"
     ),
     
     shinyUI(fluidPage(
       # Application title
       titlePanel("Immaculate Grid Cheatmobile"),
-      p("10-Sep-2023"), 
-      p("Ian McDonald ianrmcdonald at gmail.com")
+      p("11-Sep-2023"), 
+      p("Ian McDonald ianrmcdonald at gmail.com"),
+      p("Data through end of 2022")
       )
     ),
 
@@ -27,9 +28,11 @@ ui <- fluidPage(
                  
             fluidRow(
                 column(6,
-                    selectInput("team_1", "Team 1", choices = franch_list$franchName, selected="New York Mets"),
+                    selectInput("team_1", "Team 1", choices = franch_list$franchName, selected="Los Angeles Dodgers"),
                     selectInput("team_2", "Team 2", choices = franch_list$franchName, selected="New York Yankees"),
                     checkboxInput("two_team_checkbox_HOF", "Hall of Fame?", value = FALSE),
+                    checkboxInput("two_team_checkbox_all_star", "All Star?", value = FALSE),
+                    
                 ),
             ),
             
@@ -130,7 +133,7 @@ ui <- fluidPage(
                  fluidRow(
                    column(6,
                           selectInput("award_t1aay", "Award 1", choices = awards_categories, selected="Most Valuable Player"),
-                          selectInput("award_t2aay", "Award 2", choices = awards_categories, selected="Cy Young"),
+                          selectInput("award_t2aay", "Award 2", choices = awards_categories, selected="Silver Slugger"),
                           checkboxInput("checkbox_HOF", "Hall of Fame?", value = FALSE),
                           checkboxInput("same_year", "Same Year?", value = FALSE)
                           
@@ -205,6 +208,16 @@ server <- function(input, output, session) {
             distinct() |> 
             arrange(desc(career_teams))
           
+        } else if(input$two_team_checkbox_all_star) {
+          
+          find_all_two_teams(t_1, t_2) |> 
+            inner_join(playerID_number_of_teams, by="playerID") |> 
+            inner_join(all_star_any_year, by="playerID", relationship =
+                         "many-to-many") |> 
+            select(-playerID) |> 
+            distinct() |> 
+            arrange(desc(career_teams))
+          
         } else {
           
         find_all_two_teams(t_1, t_2) |> 
@@ -228,8 +241,8 @@ server <- function(input, output, session) {
     })
     
     find_them_goal_any <- reactive({
-      if(input$stat %in% pitching_stat_categories) class <- "pitching"
-      if(input$stat %in% batting_stat_categories) class <- "batting"
+      if(input$stat_any_team %in% pitching_stat_categories) class <- "pitching"
+      if(input$stat_any_team %in% batting_stat_categories) class <- "batting"
       
       
       t_1 <- lookup_franchise_id(input$team)
@@ -316,23 +329,23 @@ server <- function(input, output, session) {
  
     
 
-    output$players <- renderDataTable(find_them(), options = list(pageLength = 25))
-    output$players_goal <- renderDataTable(find_them_goal(), options = list(pageLength = 25))
-    output$players_goal_any_team <- renderDataTable(find_them_goal_any(), options = list(pageLength = 25))
+    output$players <- renderDataTable(find_them(), options = list(pageLength = 100))
+    output$players_goal <- renderDataTable(find_them_goal(), options = list(pageLength = 100))
+    output$players_goal_any_team <- renderDataTable(find_them_goal_any(), options = list(pageLength = 100))
     
-    output$players_career <- renderDataTable(find_them_career() |> select(-playerID), options = list(pageLength = 25))
+    output$players_career <- renderDataTable(find_them_career() |> select(-playerID), options = list(pageLength = 100))
     output$players_career_any_team <- renderDataTable(find_them_career_any_team() |> select(-playerID),
-                                                      options = list(pageLength = 25))
+                                                      options = list(pageLength = 100))
     output$team_and_award <- renderDataTable(find_team_and_award() |> select(-playerID) |> select(-franchID),
-                                             options = list(pageLength = 25))
+                                             options = list(pageLength = 100))
     output$two_awards_any_year <- renderDataTable(two_awards_any_year(),
-                                                  options = list(pageLength = 25))
+                                                  options = list(pageLength = 100))
     
     output$names_teams <- renderDataTable(find_teams(),
-                                          options = list(pageLength = 25))
+                                          options = list(pageLength = 100))
     
     output$teams_number <- renderDataTable(playerID_number_of_teams_names |> select(-playerID),
-                                           options = list(pageLength = 25))
+                                           options = list(pageLength = 100))
     
    
 
