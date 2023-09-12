@@ -16,7 +16,9 @@ batting_raw <- read_csv("data/Batting.csv") |>
   mutate(BA = ifelse(AB + SF + SH + BB + HBP >= 502, round(H / AB * 1000, 
                                            digits=0), 0))
 
-pitching_raw <- read_csv("data/Pitching.csv")
+pitching_raw <- read_csv("data/Pitching.csv") |> 
+  rename(K = SO)
+
 people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
 awards_raw <- read_csv("data/AwardsPlayers.csv") |> 
   mutate(awardID = ifelse(awardID == "SIlver Slugger", "Silver Slugger", awardID))
