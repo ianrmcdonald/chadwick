@@ -148,28 +148,43 @@ team_ngames <- function(franch) {
 
 
 find_all_two_teams <- function(t1, t2) {
-  
-  t1_name <- str_c(t1," games")
-  t2_name <- str_c(t2," games")
-  
-  two_teams <- all_playerID_teams |> 
-        filter(franchID == t1 | franchID == t2) |>
-        mutate(team_count = ifelse(franchID == t1, 1, 2)) |>
-        group_by(playerID) |> 
-        summarise(team_count = sum(team_count)) |> 
-        filter(team_count == 3) |> 
-        inner_join(people_raw, by="playerID") |>
-        arrange(desc(debut)) |> 
-        mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |> 
-        mutate_if(is.Date,~format(.,"%Y")) |> 
-        select(playerID, nameWhole, debut, finalGame) |> 
-        inner_join(team_ngames(t1), by="playerID") |> 
-        rename("{t1_name}" := games) |> 
-        select(-franchID) |> 
-        inner_join(team_ngames(t2), by="playerID") |> 
-        rename("{t2_name}" := games) |> 
-        select(-franchID)
-  
+  if(t1 == t2) {
+    t1_name <- str_c(t1," games")
+
+    two_teams <- all_playerID_teams |> 
+      filter(franchID == t1) |>
+      inner_join(people_raw, by="playerID") |>
+      arrange(desc(debut)) |> 
+      mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |> 
+      mutate_if(is.Date,~format(.,"%Y")) |> 
+      select(playerID, nameWhole, debut, finalGame) |> 
+      inner_join(team_ngames(t1), by="playerID") |> 
+      rename("{t1_name}" := games) |> 
+      select(-franchID)
+      
+  } else {
+    
+    t1_name <- str_c(t1," games")
+    t2_name <- str_c(t2," games")
+
+    two_teams <- all_playerID_teams |> 
+          filter(franchID == t1 | franchID == t2) |>
+          mutate(team_count = ifelse(franchID == t1, 1, 2)) |>
+          group_by(playerID) |> 
+          summarise(team_count = sum(team_count)) |> 
+          filter(team_count == 3) |> 
+          inner_join(people_raw, by="playerID") |>
+          arrange(desc(debut)) |> 
+          mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |> 
+          mutate_if(is.Date,~format(.,"%Y")) |> 
+          select(playerID, nameWhole, debut, finalGame) |> 
+          inner_join(team_ngames(t1), by="playerID") |> 
+          rename("{t1_name}" := games) |> 
+          select(-franchID) |> 
+          inner_join(team_ngames(t2), by="playerID") |> 
+          rename("{t2_name}" := games) |> 
+          select(-franchID)
+    }
 }
 
 threshhold_team <- function(team, threshhold_i, stat, type="batting") {
@@ -381,6 +396,16 @@ lookup_franchise_id <- function(franchise_name) {
   
     as.character(franch_ID$franchID)
     
+}
+
+find_all_stars_one_franchise <- function(franch_input) {
+  x all_star_raw |> 
+    inner_join(team_franch, by="teamID") |> 
+    filter(franchID == franch_input) |> 
+    inner_join(people_raw, by="playerID") |> 
+    mutate(nameWhole = str_c(nameFirst," ", nameLast))
+    select(nameWhole, yearID)
+  
 }
 
 batting_stat_categories <- colnames(batting_raw[6:ncol(batting_raw)])
