@@ -22,6 +22,11 @@ pitching_raw <- read_csv("data/Pitching.csv") |>
 people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
 awards_raw <- read_csv("data/AwardsPlayers.csv") |> 
   mutate(awardID = ifelse(awardID == "SIlver Slugger", "Silver Slugger", awardID))
+
+#hand compiled a 2022 addendum for the awards table
+awards_raw_2022 <- read_csv("data/AwardsPlayers_2022.csv") 
+awards_raw <- bind_rows(awards_raw, awards_raw_2022)
+
 #fix typo in raw data
 
 team_raw <- read_csv("data/Teams.csv")
@@ -82,7 +87,7 @@ playerID_number_of_teams <- all_playerID_teams |>
   rename(career_teams = n)|> 
   select(playerID, career_teams)
 
-playerID_number_of_teams_names <- all_playerID_teams |> 
+pid_number <- all_playerID_teams |> 
   count(playerID) |> 
   rename(career_teams = n)|> 
   inner_join(people_raw, by="playerID") |> 
@@ -114,15 +119,20 @@ players_and_teams <- function(player, name_complete = FALSE) {
   
 }
 
+
+playerID_number_of_teams <- all_playerID_teams |> 
+  count(playerID) |> 
+  rename(career_teams = n)
+
 name_whole_list <- people_raw |> 
+  inner_join(playerID_number_of_teams, by="playerID") |> 
+  arrange(desc(career_teams)) |> 
   mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
   mutate(y_text_1 = format(debut,"%Y")) |> 
   mutate(y_text_2 = format(finalGame,"%Y")) |> 
   mutate(ifelse (y_text_2 == "2023", "", y_text_2)) |> 
   mutate(nameWholeYears = str_c(nameWhole, ": ", y_text_1,"-",y_text_2)) |> 
   select(playerID, nameWholeYears)
-
-
 
 
 
@@ -160,6 +170,7 @@ find_all_two_teams <- function(t1, t2) {
       select(playerID, nameWhole, debut, finalGame) |> 
       inner_join(team_ngames(t1), by="playerID") |> 
       rename("{t1_name}" := games) |> 
+      mutate(combined = !!as.name(t1_name)) |> 
       select(-franchID)
       
   } else {
@@ -182,7 +193,8 @@ find_all_two_teams <- function(t1, t2) {
           rename("{t1_name}" := games) |> 
           select(-franchID) |> 
           inner_join(team_ngames(t2), by="playerID") |> 
-          rename("{t2_name}" := games) |> 
+          rename("{t2_name}" := games) |>
+          mutate(combined = !!as.name(t1_name) + !!as.name(t2_name)) |> 
           select(-franchID)
     }
 }
@@ -399,18 +411,21 @@ lookup_franchise_id <- function(franchise_name) {
 }
 
 find_all_stars_one_franchise <- function(franch_input) {
-  x all_star_raw |> 
+  all_star_raw |> 
     inner_join(team_franch, by="teamID") |> 
-    filter(franchID == franch_input) |> 
+    filter(franchID == franch_input)  |> 
     inner_join(people_raw, by="playerID") |> 
-    mutate(nameWhole = str_c(nameFirst," ", nameLast))
-    select(nameWhole, yearID)
+    mutate(nameWhole = str_c(nameFirst," ", nameLast)) |> 
+    select(playerID, nameWhole, debut, finalGame) |> 
+    distinct() |> 
+    mutate_if(is.Date,~format(.,"%Y")) |> 
+    arrange(playerID)
   
 }
 
 batting_stat_categories <- colnames(batting_raw[6:ncol(batting_raw)])
 pitching_stat_categories <- colnames(pitching_raw[6:ncol(pitching_raw)])
-pitching_stat_categories <- pitching_stat_categories[pitching_stat_categories!="G"]
+pitching_stat_categories <- pitching_stat_categories[pitching_stat_categories != "G"]
 awards_categories <- unique(awards_raw$awardID) |> sort()
 stat_categories <- unique(str_sort(c(batting_stat_categories, pitching_stat_categories)))
 

@@ -13,7 +13,7 @@ ui <- fluidPage(
     shinyUI(fluidPage(
       # Application title
       titlePanel("Immaculate Grid Cheatmobile"),
-      p("11-Sep-2023"), 
+      p("27-Sep-2023"), 
       p("Ian McDonald ianrmcdonald at gmail.com"),
       p("Data through end of 2022")
       )
@@ -206,7 +206,7 @@ server <- function(input, output, session) {
                          "many-to-many") |> 
             select(-playerID) |> 
             distinct() |> 
-            arrange(desc(career_teams))
+            arrange(desc(combined))
           
         } else if(input$two_team_checkbox_all_star) {
           
@@ -216,7 +216,7 @@ server <- function(input, output, session) {
                          "many-to-many") |> 
             select(-playerID) |> 
             distinct() |> 
-            arrange(desc(career_teams))
+            arrange(desc(combined))
           
         } else {
           
@@ -224,7 +224,7 @@ server <- function(input, output, session) {
             inner_join(playerID_number_of_teams, by="playerID") |> 
             select(-playerID) |> 
             distinct() |> 
-            arrange(desc(career_teams))
+            arrange(desc(combined))
         }
     })
     
@@ -344,8 +344,9 @@ server <- function(input, output, session) {
     output$names_teams <- renderDataTable(find_teams(),
                                           options = list(pageLength = 100))
     
-    output$teams_number <- renderDataTable(playerID_number_of_teams_names |> select(-playerID),
-                                           options = list(pageLength = 100))
+    output$teams_number <- renderDataTable(pid_number |> 
+                                             select(-playerID),
+                                           options = list(pageLength = 25))
     
    
 
