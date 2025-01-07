@@ -19,13 +19,14 @@ batting_raw <- read_csv("data/Batting.csv") |>
 pitching_raw <- read_csv("data/Pitching.csv") |> 
   rename(K = SO)
 
+
+
+
 people_raw <- read_csv("data/People.csv") #modified people.csv per 7/30/2023 update
 awards_raw <- read_csv("data/AwardsPlayers.csv") |> 
   mutate(awardID = ifelse(awardID == "SIlver Slugger", "Silver Slugger", awardID))
 
 #hand compiled a 2022 addendum for the awards table
-awards_raw_2022 <- read_csv("data/AwardsPlayers_2022.csv") 
-awards_raw <- bind_rows(awards_raw, awards_raw_2022)
 
 #fix typo in raw data
 
@@ -289,7 +290,9 @@ threshhold_career_any_team <- function(threshhold_i, stat, type="batting") {
     mutate(player = str_c(nameFirst, " ", nameLast)) |>
     rename("{stat_i}" := stat_i) |> 
     select(playerID, player, debut, finalGame, !!as.name(stat_i)) |> 
-    distinct()
+    distinct() |> 
+    arrange(desc(!!as.name(stat_i))) 
+  
   
   
 }
@@ -428,7 +431,6 @@ pitching_stat_categories <- colnames(pitching_raw[6:ncol(pitching_raw)])
 pitching_stat_categories <- pitching_stat_categories[pitching_stat_categories != "G"]
 awards_categories <- unique(awards_raw$awardID) |> sort()
 stat_categories <- unique(str_sort(c(batting_stat_categories, pitching_stat_categories)))
-
 
 
 

@@ -7,7 +7,7 @@ library(bslib)
 ui <- fluidPage(
   
     theme = bs_theme(
-      bootswatch = "minty"
+      bootswatch = "yeti"
     ),
     
     shinyUI(fluidPage(
@@ -40,7 +40,7 @@ ui <- fluidPage(
             
             fluidRow(
                 column(12, 
-                    dataTableOutput("players")),
+                    DT::DTOutput("players")),
                 ),
             ),
         
@@ -59,7 +59,7 @@ ui <- fluidPage(
             
             fluidRow(
                 column(12, 
-                    dataTableOutput("players_goal")),
+                    DT::DTOutput("players_goal")),
             )
         
                  
@@ -77,7 +77,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("players_goal_any_team")),
+                          DT::DTOutput("players_goal_any_team")),
                  )
                  
                  
@@ -94,7 +94,7 @@ ui <- fluidPage(
     
             fluidRow(
                 column(12, 
-                    dataTableOutput("players_career")),
+                    DT::DTOutput("players_career")),
             )
     
         ),         
@@ -109,7 +109,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("players_career_any_team")),
+                          DT::DTOutput("players_career_any_team")),
                  )
                  
         ),      
@@ -124,7 +124,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("team_and_award")),
+                          DT::DTOutput("team_and_award")),
                  )
                  
         ),    
@@ -142,7 +142,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("two_awards_any_year")),
+                          DT::DTOutput("two_awards_any_year")),
                  )
                 
                  
@@ -166,7 +166,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("names_teams")),
+                          DT::DTOutput("names_teams")),
                  ) 
                  
                  
@@ -178,7 +178,7 @@ ui <- fluidPage(
                  
                  fluidRow(
                    column(12, 
-                          dataTableOutput("teams_number")),
+                          DT::DTOutput("teams_number")),
                  ) 
                  
                  
@@ -329,22 +329,22 @@ server <- function(input, output, session) {
  
     
 
-    output$players <- renderDataTable(find_them(), options = list(pageLength = 100))
-    output$players_goal <- renderDataTable(find_them_goal(), options = list(pageLength = 100))
-    output$players_goal_any_team <- renderDataTable(find_them_goal_any(), options = list(pageLength = 100))
+    output$players <- DT::renderDT(find_them(), options = list(pageLength = 100))
+    output$players_goal <- DT::renderDT(find_them_goal(), options = list(pageLength = 100))
+    output$players_goal_any_team <- DT::renderDT(find_them_goal_any(), options = list(pageLength = 100))
     
-    output$players_career <- renderDataTable(find_them_career() |> select(-playerID), options = list(pageLength = 100))
-    output$players_career_any_team <- renderDataTable(find_them_career_any_team() |> select(-playerID),
+    output$players_career <- DT::renderDT(find_them_career() |> select(-playerID), options = list(pageLength = 100))
+    output$players_career_any_team <- DT::renderDT(find_them_career_any_team() |> select(-playerID),
                                                       options = list(pageLength = 100))
-    output$team_and_award <- renderDataTable(find_team_and_award() |> select(-playerID) |> select(-franchID),
+    output$team_and_award <- DT::renderDT(find_team_and_award() |> select(-playerID) |> select(-franchID),
                                              options = list(pageLength = 100))
-    output$two_awards_any_year <- renderDataTable(two_awards_any_year(),
+    output$two_awards_any_year <- DT::renderDT(two_awards_any_year(),
                                                   options = list(pageLength = 100))
     
-    output$names_teams <- renderDataTable(find_teams(),
+    output$names_teams <- DT::renderDT(find_teams(),
                                           options = list(pageLength = 100))
     
-    output$teams_number <- renderDataTable(pid_number |> 
+    output$teams_number <- DT::renderDT(pid_number |> 
                                              select(-playerID),
                                            options = list(pageLength = 25))
     
