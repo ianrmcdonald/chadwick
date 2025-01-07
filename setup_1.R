@@ -8,7 +8,7 @@ library(bslib)
 #https://github.com/chadwickbureau/baseballdatabank/tree/master/core
 #https://www.baseball-reference.com/awards/hof_batting.shtml
 
-
+#BUG we're not getting the correct final year from people.csv
 
 ## Read Data Files
 batting_raw <- read_csv("data/Batting.csv") |> 
@@ -20,12 +20,9 @@ pitching_raw <- read_csv("data/Pitching.csv") |>
   rename(K = SO)
 
 
+people_raw <- read_csv("data/People.csv") 
 
-
-people_raw <- read_csv("data/People.csv") |> 
-  select(-ID) #modified people.csv per 7/30/2023 update
-
-awards_raw <- read_csv("data/AwardsPlayers.csv") |> 
+awards_raw <- read_csv("data/AwardsSharePlayers_2023.csv") |> 
   mutate(awardID = ifelse(awardID == "SIlver Slugger", "Silver Slugger", awardID))
 
 #hand compiled a 2022 addendum for the awards table
@@ -127,28 +124,49 @@ playerID_number_of_teams <- all_playerID_teams |>
   count(playerID) |> 
   rename(career_teams = n)
 
+#problem with date formats in debut and finalGame fields
+
+#1. determine correct year
+people_raw <- people_raw |> 
+  mutate(debut_year = ifelse(str_detect(debut, "/"), str_split_i(debut,"/",3), str_split_i(debut,"-",1))) |> 
+  mutate(debut_year = as.numeric(debut_year)) 
+
+people_raw <- people_raw |> 
+  mutate(debut_year = case_when(
+    debut_year < 100 & birthYear < 1950 ~ 1900+debut_year,
+    debut_year < 100 & birthYear >= 1950 ~ 2000+debut_year,
+    .default = debut_year
+  ))
+
+people_raw <- people_raw |> 
+  mutate(final_year = ifelse(str_detect(finalGame, "/"), str_split_i(finalGame,"/",3), str_split_i(finalGame,"-",1))) |> 
+  mutate(final_year = as.numeric(final_year)) 
+  
+people_raw <- people_raw |> 
+    mutate(final_year = case_when(
+      final_year < 100 & birthYear < 1950 ~ 1900+final_year,
+      final_year < 100 & birthYear >= 1950 ~ 2000+final_year,
+      .default = final_year
+  ))
+  
+#people.csv doesn't really work very well.  Let's use the max value from batting.csv
+
+  
+
+
+
 name_whole_list <- people_raw |> 
   inner_join(playerID_number_of_teams, by="playerID") |> 
   arrange(desc(career_teams)) |> 
   mutate(nameWhole = str_c(nameFirst, " ", nameLast)) |>
-  mutate(y_text_1 = format(debut,"%Y")) |> 
-  mutate(y_text_2 = format(finalGame,"%Y")) |> 
+  mutate(y_text_1 = as.character(debut_year)) |> 
+  mutate(y_text_2 = as.character(final_year)) |> 
   mutate(ifelse (y_text_2 == "2023", "", y_text_2)) |> 
   mutate(nameWholeYears = str_c(nameWhole, ": ", y_text_1,"-",y_text_2)) |> 
   select(playerID, nameWholeYears)
 
 
 
-people_raw_old <- read_csv("data/People_old.csv") 
-name_whole_list_test <- people_raw_old |> 
-  mutate(y_text_1 = format(debut,"%Y"))
-
-people_raw <- read_csv("data/People.csv") 
-name_whole_list_test <- people_raw |> 
-  #mutate(y_text_1 = format(debut,"%Y"))
-  mutate(y_text_1 = year(debut))
-#****************************
-#*FIX THE READ DATE PROBLEM...what is actually the difference here?
 
 
 games_with_team <- function(type="batting") {
